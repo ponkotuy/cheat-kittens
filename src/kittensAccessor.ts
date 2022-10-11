@@ -17,6 +17,8 @@ export class KittensAccessor {
 
   static async generate(accessor: ContentsAccessor) {
     const info = await accessor.sendMessage(RequestKittensInfo);
+    console.log(info.resources);
+    console.log(info.buttons);
     return new KittensAccessor(accessor, info);
   }
 }

@@ -1,4 +1,7 @@
 
+// WARNING
+//   The contents.ts must be a single file. IT MUST NOT BE SPLIT.
+
 // Save Value
 let buttons = new Map<number, SavedButton>();
 class SavedButton {
@@ -77,7 +80,8 @@ browser.runtime.onMessage.addListener((raw: string) => {
   if(message.type === 'ClickButton') {
     const button = message as ClickButton;
     button.ids.forEach(id => {
-      if(buttons.get(id)?.html.click() == undefined) throw new Error(`Button id=${id} is not found`);
+      if(!buttons.has(id)) return Promise.reject(`Button id=${id} is not found`);
+      buttons.get(id)!.html.click();
     });
     return Promise.resolve(JSON.stringify(Pong));
   }
@@ -98,7 +102,9 @@ function initialize(ev: Event) {
   const interval = setInterval(() => {
     const loadingDisplay = document.getElementById("loadingContainer")?.style.display;
     if(loadingDisplay == "none") {
-      browser.runtime.sendMessage(DoneInitialize);
+      updateButtons();
+      console.log(buttons);
+      browser.runtime.sendMessage(DoneInitialize).catch(console.error);
       clearInterval(interval);
     }
   }, 100);
@@ -106,14 +112,18 @@ function initialize(ev: Event) {
 
 const ID_ATTR = 'data_ponkotuy_id'
 function updateButtons() {
-  [...document.querySelectorAll<HTMLElement>('div.btnContent')].forEach((elem, idx) => {
-    const idAttr = elem.getAttribute(ID_ATTR);
-    if(idAttr == null) {
-      const nextId = buttons.size;
-      elem.setAttribute(ID_ATTR, nextId.toString())
-      buttons.set(nextId, new SavedButton(nextId, elem.textContent!, elem));
-    }
+  [...document.querySelectorAll<HTMLElement>('a.tab')].forEach((tabElem) => {
+    tabElem.click();
+    [...document.querySelectorAll<HTMLElement>('div.btnContent')].forEach((elem, idx) => {
+      const idAttr = elem.getAttribute(ID_ATTR);
+      if(idAttr == null) {
+        const nextId = buttons.size;
+        elem.setAttribute(ID_ATTR, nextId.toString())
+        buttons.set(nextId, new SavedButton(nextId, elem.textContent!, elem));
+      }
+    });
   });
+  document.querySelector<HTMLElement>('a.tab.Bonfire')?.click();
 }
 
 const SI = ['K', 'M', 'G'];
@@ -139,6 +149,5 @@ function getResources(): Resource[] {
 }
 
 function collectInfo(): KittensInfo {
-  updateButtons();
   return new KittensInfo([...buttons.values()], getResources());
 }
