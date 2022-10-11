@@ -1,0 +1,20 @@
+{
+  "manifest_version": 2,
+  "name": "CheatKittens",
+  "version": "1.0",
+  "description": "Cheat Kittens Game from JS",
+  "content_scripts": [
+    {
+      "matches": ["*://kittensgame.com/web*"],
+      "js": ["./build/contents.js"]
+    }
+  ],
+  "background": {
+    "scripts": ["./build/background.js"]
+  },
+  "applications": {
+    "gecko": {
+      "id": "i@ponkotuy.com"
+    }
+  }
+}
